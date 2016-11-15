@@ -153,3 +153,15 @@ func (s *BoardService) GetAllSprints(boardID string) ([]Sprint, *Response, error
 	resp, err := s.client.Do(req, result)
 	return result.Sprints, resp, err
 }
+
+func (s *BoardService) GetAllActiveSprints(boardID string) ([]Sprint, *Response, error) {
+	apiEndpoint := fmt.Sprintf("rest/agile/1.0/board/%s/sprint?state=active", boardID)
+	req, err := s.client.NewRequest("GET", apiEndpoint, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result := new(sprintsResult)
+	resp, err := s.client.Do(req, result)
+	return result.Sprints, resp, err
+}
