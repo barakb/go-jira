@@ -14,6 +14,7 @@ import (
 
 	"github.com/fatih/structs"
 	"github.com/trivago/tgo/tcontainer"
+	"errors"
 )
 
 const (
@@ -35,6 +36,7 @@ type Issue struct {
 	Self   string       `json:"self,omitempty" structs:"self,omitempty"`
 	Key    string       `json:"key,omitempty" structs:"key,omitempty"`
 	Fields *IssueFields `json:"fields,omitempty" structs:"fields,omitempty"`
+	Names  map[string]string  `json:"names,omitempty" structs:"names,omitempty"`
 }
 
 // Attachment represents a JIRA attachment
@@ -445,6 +447,26 @@ func (s *IssueService) Get(issueID string) (*Issue, *Response, error) {
 	return issue, resp, nil
 }
 
+func (s *IssueService) GetCustomFieldId(issueID, customFieldName string) (string, error) {
+	apiEndpoint := fmt.Sprintf("rest/api/2/issue/%s?expand=names", issueID)
+	req, err := s.client.NewRequest("GET", apiEndpoint, nil)
+	if err != nil {
+		return "", err
+	}
+
+	issue := new(Issue)
+	_, err = s.client.Do(req, issue)
+	if err != nil {
+		return "", err
+	}
+	for k, v := range issue.Names{
+		if v == customFieldName{
+			return k , nil
+		}
+	}
+	return "", errors.New("not found")
+}
+
 // DownloadAttachment returns a Response of an attachment for a given attachmentID.
 // The attachment is in the Response.Body of the response.
 // This is an io.ReadCloser.
@@ -554,7 +576,7 @@ func (s *IssueService) AddComment(issueID string, comment *Comment) (*Comment, *
 //
 // JIRA API docs: https://docs.atlassian.com/jira/REST/latest/#api/2/issueLink
 func (s *IssueService) AddLink(issueLink *IssueLink) (*Response, error) {
-	apiEndpoint := fmt.Sprintf("rest/api/2/issueLink")
+	apiEndpoint := fmt.Sprint("rest/api/2/issueLink")
 	req, err := s.client.NewRequest("POST", apiEndpoint, issueLink)
 	if err != nil {
 		return nil, err
