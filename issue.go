@@ -544,11 +544,11 @@ func (s *IssueService) Create(issue *Issue) (*Issue, *Response, error) {
 	defer resp.Body.Close()
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, resp, fmt.Errorf("Could not read the returned data")
+		return nil, resp, errors.New("Could not read the returned data")
 	}
 	err = json.Unmarshal(data, responseIssue)
 	if err != nil {
-		return nil, resp, fmt.Errorf("Could not unmarshall the data into struct")
+		return nil, resp, errors.New("Could not unmarshall the data into struct")
 	}
 	return responseIssue, resp, nil
 }
@@ -754,4 +754,25 @@ func InitIssueWithMetaAndFields(metaProject *MetaProject, metaIssuetype *MetaIss
 	issue.Fields = issueFields
 
 	return issue, nil
+}
+
+
+type CreateUpdateCustomFieldPayload struct {
+	Update map[string][]map[string]interface{} `json:"update" structs:"update"`
+}
+// curl   --X PUT -d '{"update" : {"customfield_10373" : [{"set" : 12.0}]}' -H "Content-Type: application/json" "https://xap-issues.atlassian.net/rest/api/2/issue/XAP-12352"
+func (s *IssueService) SetCustomField(issueId, fieldId string, value interface{}) (*Response, error) {
+	apiEndpoint := fmt.Sprintf("rest/api/2/issue/%s", issueId)
+
+	payload := CreateUpdateCustomFieldPayload{Update:map[string][]map[string]interface{}{fieldId: []map[string]interface{}{map[string]interface{}{"set": value}}}}
+	req, err := s.client.NewRequest("PUT", apiEndpoint, payload)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := s.client.Do(req, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
