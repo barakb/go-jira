@@ -40,6 +40,22 @@ func (s *SprintService) MoveIssuesToSprint(sprintID int, issueIDs []string) (*Re
 	return resp, err
 }
 
+func (s *SprintService) MoveIssuesToBackLog(issueIDs ... string) (*Response, error) {
+	apiEndpoint := fmt.Sprint("rest/agile/1.0/backlog/issue")
+
+	payload := IssuesWrapper{Issues: issueIDs}
+
+	req, err := s.client.NewRequest("POST", apiEndpoint, payload)
+
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.Do(req, nil)
+	return resp, err
+}
+
+
 // GetIssuesForSprint returns all issues in a sprint, for a given sprint Id.
 // This only includes issues that the user has permission to view.
 // By default, the returned issues are ordered by rank.
