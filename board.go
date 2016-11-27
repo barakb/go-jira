@@ -165,3 +165,44 @@ func (s *BoardService) GetAllActiveSprints(boardID string) ([]Sprint, *Response,
 	resp, err := s.client.Do(req, result)
 	return result.Sprints, resp, err
 }
+
+func (s *BoardService) CloseSprint(SprintId string) (*Sprint, *Response, error) {
+	apiEndpoint := fmt.Sprintf("rest/agile/1.0/sprint/%s", SprintId)
+	body := map[string]string{"state":"closed"}
+	req, err := s.client.NewRequest("POST", apiEndpoint, body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result := new(Sprint)
+	resp, err := s.client.Do(req, result)
+	return result, resp, err
+}
+
+func (s *BoardService) StartSprint(SprintId string) (*Sprint, *Response, error) {
+	apiEndpoint := fmt.Sprintf("rest/agile/1.0/sprint/%s", SprintId)
+	body := map[string]string{"state":"active"}
+	req, err := s.client.NewRequest("POST", apiEndpoint, body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result := new(Sprint)
+	resp, err := s.client.Do(req, result)
+	return result, resp, err
+}
+
+func (s *BoardService) CreateSprint(name string, start, end time.Time, boardId int) (*Sprint, *Response, error) {
+	apiEndpoint := "rest/agile/1.0/sprint"
+	body := Sprint{Name:name, StartDate:&start, EndDate:&end, OriginBoardID:boardId}
+	req, err := s.client.NewRequest("POST", apiEndpoint, body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result := new(Sprint)
+	resp, err := s.client.Do(req, result)
+	return result, resp, err
+}
+
+
