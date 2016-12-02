@@ -192,9 +192,16 @@ func (s *BoardService) StartSprint(SprintId string) (*Sprint, *Response, error) 
 	return result, resp, err
 }
 
+type CreateSprintRequest struct {
+	Name          string     `json:"name" structs:"name"`
+	EndDate       *time.Time `json:"endDate" structs:"endDate"`
+	StartDate     *time.Time `json:"startDate" structs:"startDate"`
+	OriginBoardID int        `json:"originBoardId" structs:"originBoardId"`
+}
+
 func (s *BoardService) CreateSprint(name string, start, end time.Time, boardId int) (*Sprint, *Response, error) {
 	apiEndpoint := "rest/agile/1.0/sprint"
-	body := Sprint{Name:name, StartDate:&start, EndDate:&end, OriginBoardID:boardId}
+	body := CreateSprintRequest{Name:name, StartDate:&start, EndDate:&end, OriginBoardID:boardId}
 	req, err := s.client.NewRequest("POST", apiEndpoint, body)
 	if err != nil {
 		return nil, nil, err
