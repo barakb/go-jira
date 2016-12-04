@@ -234,6 +234,7 @@ type Response struct {
 	StartAt    int
 	MaxResults int
 	Total      int
+	IsLast     bool
 }
 
 func newResponse(r *http.Response, v interface{}) *Response {
@@ -250,6 +251,10 @@ func (r *Response) populatePageValues(v interface{}) {
 		r.StartAt = value.StartAt
 		r.MaxResults = value.MaxResults
 		r.Total = value.Total
+	case *sprintsResult:
+		r.MaxResults = value.MaxResults
+		r.StartAt = int(value.StartAt)
+		r.IsLast = value.IsLast
 	}
 	return
 }

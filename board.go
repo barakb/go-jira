@@ -46,6 +46,9 @@ type BoardListOptions struct {
 
 // Wrapper struct for search result
 type sprintsResult struct {
+	MaxResults int `json:"maxResults,omitempty"`
+	StartAt int64 `json:"startAt,omitempty"`
+	IsLast bool `json:"isLast,omitempty"`
 	Sprints []Sprint `json:"values" structs:"values"`
 }
 
@@ -164,6 +167,28 @@ func (s *BoardService) GetAllActiveSprints(boardID string) ([]Sprint, *Response,
 	result := new(sprintsResult)
 	resp, err := s.client.Do(req, result)
 	return result.Sprints, resp, err
+}
+
+func (s *BoardService) GetLastSprint(boardID string) (Sprint, *Response, error) {
+	startAt, maxResults := 0, 100
+	var resultPtr *Sprint
+	for {
+		apiEndpoint := fmt.Sprintf("rest/agile/1.0/board/%s/sprint?startAt=%d&maxResults=%d", boardID, startAt, maxResults)
+		req, err := s.client.NewRequest("GET", apiEndpoint, nil)
+		if err != nil {
+			return Sprint{}, nil, err
+		}
+
+		result := new(sprintsResult)
+		resp , err := s.client.Do(req, result)
+		if 0 < len(result.Sprints){
+			resultPtr = &result.Sprints[len(result.Sprints) - 1]
+		}
+		if result.IsLast{
+			return *resultPtr, resp, nil
+		}
+		startAt += len(result.Sprints)
+	}
 }
 
 func (s *BoardService) CloseSprint(SprintId string) (*Sprint, *Response, error) {
